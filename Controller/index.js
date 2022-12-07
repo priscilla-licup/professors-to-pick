@@ -387,7 +387,7 @@ app.post("/fetch_profs", isAuth, function(req, res) {
 
 app.post("/insert_entry", isAuth, function(req, res) {
     let today = new Date().toISOString().slice(0, 10)
-    var sql = "INSERT INTO Entry(";
+    var sql = "INSERT INTO entry(";
     sql += "professor_id";
     sql += ", user_id";
     sql += ", entry_date";
