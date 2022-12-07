@@ -473,7 +473,7 @@ app.post("/prof_fetch_entry", isAuth, function(req, res){
         sql +=  "       ,Ifnull(v.vote, 0)  AS vote ";
         sql +=  "       ,Ifnull(uv.vote, 0) AS user_vote ";
         sql +=  "FROM   entry e ";
-        sql +=  "       LEFT JOIN USER u ON e.user_id = u.user_id ";
+        sql +=  "       LEFT JOIN user u ON e.user_id = u.user_id ";
         sql +=  "       LEFT JOIN (SELECT entry_id, ";
         sql +=  "                         Sum(vote) AS vote ";
         sql +=  "                  FROM   vote ";
