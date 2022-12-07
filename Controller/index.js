@@ -207,7 +207,7 @@ app.post("/create_account", checkAuth, function(req, res){
             sql +=  ", '" + req.body.yearLevel + "'";
             sql +=  ", '" + req.body.course + "'";
             sql +=  ", '" + req.body.bio + "')";
-        
+        console.log(sql);
         con.query(sql, (error, profile, fields) => {
             if (error) {
                 res.redirect("/signup?error=2");
