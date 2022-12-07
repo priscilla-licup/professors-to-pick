@@ -16,38 +16,38 @@ app.set('trust proxy', 1);
 
 app.use(fileUpload());
 app.use(express.static(path.join(__dirname, '../')));
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.set('views',path.join(__dirname, '../Views'));
+app.set('views', path.join(__dirname, '../Views'));
 
-global.globaluser={};
+//global.globaluser={};
 
 /* Session */
 app.use(express.json());
 app.use(
-    cors({ 
-    origin: ["https://professors-to-pick-production.up.railway.app"],
-    methods: ["GET", "POST"],
-    credentials: true
-}));
+    cors({
+        origin: ["https://professors-to-pick-production.up.railway.app"],
+        methods: ["GET", "POST"],
+        credentials: true
+    }));
 
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 var con = mysql.createConnection("mysql://root:VUgmCk9rga7Ym5wuViZL@containers-us-west-157.railway.app:7482/railway");
 
 const MySQLStore = require("express-mysql-session")(session);
 
 var sessionStore = new MySQLStore({
-     createDatabaseTable: true,
-     schema:{
-         tableName: 'tblSession',
-         columnNames: {
-             session_id: 'session_id',
-             data: 'data'
-         }
-     }
- },con)
+    createDatabaseTable: true,
+    schema: {
+        tableName: 'tblSession',
+        columnNames: {
+            session_id: 'session_id',
+            data: 'data'
+        }
+    }
+}, con)
 
 app.use(session({
     key: 'key',
@@ -63,27 +63,25 @@ app.use(session({
 
 
 /* Check if logged in */
-function isAuth(req, res, next){
-    if(req.session.username){
+function isAuth(req, res, next) {
+    if (req.session.username) {
         return next();
-    }
-    else{
+    } else {
         res.redirect('/');
     }
 }
 
 /* Check if logged in for register and login */
-function checkAuth(req, res, next){
-    if(req.session.username){
+function checkAuth(req, res, next) {
+    if (req.session.username) {
         res.redirect('/entry');
-    }
-    else{
+    } else {
         return next();
     }
 }
 
 /* End of Session */
-app.get("/", checkAuth, function(req, res){
+app.get("/", checkAuth, function(req, res) {
     console.log(con);
     var message = req.query.error;
     console.log(res.session);
@@ -92,11 +90,11 @@ app.get("/", checkAuth, function(req, res){
     });
 });
 
-app.get("/about", isAuth, function(req, res){
-    res.render("about.ejs");
+app.get("/about", isAuth, function(req, res) {
+    res.render("about.ejs", { session: req.session });
 });
 
-app.get("/add_prof", isAuth, function(req, res){
+app.get("/add_prof", isAuth, function(req, res) {
     var sql = "SELECT * FROM department";
     con.query(sql, (error, department, fields) => {
         if (error) throw error;
@@ -108,8 +106,9 @@ app.get("/add_prof", isAuth, function(req, res){
                     sql = "SELECT * FROM school";
                     con.query(sql, (error, school, fields) => {
                         if (error) throw error;
-                        else{
+                        else {
                             res.render("addProf.ejs", {
+                                session: req.session,
                                 department: department,
                                 subjects: subjects,
                                 school: school,
@@ -122,19 +121,20 @@ app.get("/add_prof", isAuth, function(req, res){
     });
 });
 
-app.get("/catalog", isAuth, function(req, res){
-    res.render("catalog.ejs");
+app.get("/catalog", isAuth, function(req, res) {
+    res.render("catalog.ejs", { session: req.session });
 });
 
-app.get("/edit", isAuth, function(req, res){
+app.get("/edit", isAuth, function(req, res) {
     var sql = "SELECT e.*, concat(p.firstname, ' ', p.lastname) as full_name FROM entry e left join professors p on e.professor_id=p.professor_id where entry_id=" + req.query.entryid;
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
         else {
-            con.query(sql, (error, pic, fields)=>{
+            con.query(sql, (error, pic, fields) => {
                 if (error) throw error;
                 else
                     res.render("editEntry.ejs", {
+                        session: req.session,
                         data: results[0],
                         userid: req.query.userid,
                         entryid: req.query.entryid,
@@ -145,8 +145,8 @@ app.get("/edit", isAuth, function(req, res){
     });
 });
 
-app.get("/edit_profile", isAuth, function(req, res){
-    var sql = "SELECT * FROM user WHERE user_id=" + globaluser.user_id;
+app.get("/edit_profile", isAuth, function(req, res) {
+    var sql = "SELECT * FROM user WHERE user_id=" + req.session.user_id;
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
         else {
@@ -154,8 +154,9 @@ app.get("/edit_profile", isAuth, function(req, res){
             con.query(sql, (error, school, fields) => {
                 if (error) throw error;
                 else {
-                    
+
                     res.render("editProfile.ejs", {
+                        session: req.session,
                         results: results[0],
                         school: school,
                         user: req.query.user,
@@ -168,58 +169,61 @@ app.get("/edit_profile", isAuth, function(req, res){
 });
 
 
-app.get("/entry", isAuth, function(req, res){
-        res.render("entry.ejs");
+app.get("/entry", isAuth, function(req, res) {
+    res.render("entry.ejs", { session: req.session });
 });
 
-app.get("/professor", isAuth, function(req, res){
+app.get("/professor", isAuth, function(req, res) {
     res.render("profProfile.ejs", {
+        session: req.session,
         prof: req.query.profid
     });
 });
 
-app.get("/profile", isAuth, function(req, res){
+app.get("/profile", isAuth, function(req, res) {
     res.render("profile.ejs", {
+        session: req.session,
         profile: req.query.profile
     });
 })
 
-app.get("/signup", checkAuth, function(req, res){
+app.get("/signup", checkAuth, function(req, res) {
     var sql = "SELECT * FROM school";
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
-        else 
-        res.render("signup.ejs", {
-            results: results,
-            msg: req.query.error
-        });
+        else
+            res.render("signup.ejs", {
+                session: req.session,
+                results: results,
+                msg: req.query.error
+            });
     });
 });
 
-app.post("/create_account", checkAuth, function(req, res){
+app.post("/create_account", checkAuth, function(req, res) {
     if (req.body.password != req.body.repassword) {
         res.redirect("/signup?error=1");
     } else {
-        var sql =   "INSERT INTO user(school_id,username, password, year_level, course, biography) VALUES(";
-            sql +=  "'" + req.body.school + "'";
-            sql +=  ", '" + req.body.username + "'";
-            sql +=  ", '" + bcrypt.hashSync(req.body.password, 10) + "'";
-            sql +=  ", '" + req.body.yearLevel + "'";
-            sql +=  ", '" + req.body.course + "'";
-            sql +=  ", '" + req.body.bio + "')";
-        console.log(sql);
+        var sql = "INSERT INTO user(school_id,username, password, year_level, course, biography) VALUES(";
+        sql += "'" + req.body.school + "'";
+        sql += ", '" + req.body.username + "'";
+        sql += ", '" + bcrypt.hashSync(req.body.password, 10) + "'";
+        sql += ", '" + req.body.yearLevel + "'";
+        sql += ", '" + req.body.course + "'";
+        sql += ", '" + req.body.bio + "')";
+
         con.query(sql, (error, profile, fields) => {
             if (error) {
                 res.redirect("/signup?error=2");
             } else {
                 var profilePicture = "";
-                if(req.files!=null){
+                if (req.files != null) {
                     const { myPhoto } = req.files;
-                    profilePicture = 'u'+profile.insertId+'.' + myPhoto.name.split('.').pop();
-                    myPhoto.mv(path.join(__dirname, '../pictures/'+profilePicture));
-                    sql =   "UPDATE user ";
-                    sql +=  "SET profile_picture='"+profilePicture+"' ";
-                    sql +=  "WHERE user_id='"+profile.insertId+"'";
+                    profilePicture = 'u' + profile.insertId + '.' + myPhoto.name.split('.').pop();
+                    myPhoto.mv(path.join(__dirname, '../pictures/' + profilePicture));
+                    sql = "UPDATE user ";
+                    sql += "SET profile_picture='" + profilePicture + "' ";
+                    sql += "WHERE user_id='" + profile.insertId + "'";
                     con.query(sql, (error, subjects, fields) => {
                         if (error) throw error;
                     });
@@ -230,20 +234,20 @@ app.post("/create_account", checkAuth, function(req, res){
     }
 });
 
-app.post("/create_prof", isAuth, function(req, res){
+app.post("/create_prof", isAuth, function(req, res) {
     var sql = "INSERT INTO professors(school_id, department_id, firstname, lastname) VALUES('"
     sql += req.body.school + "', '" + req.body.department + "', '" + req.body.fname + "', '" + req.body.lname + "');";
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
         else {
             var profilePicture = "";
-            if(req.files!=null){
+            if (req.files != null) {
                 const { myPhoto } = req.files;
-                profilePicture = 'p'+results.insertId+'.' + myPhoto.name.split('.').pop();
-                myPhoto.mv(path.join(__dirname, '../pictures/'+profilePicture));
+                profilePicture = 'p' + results.insertId + '.' + myPhoto.name.split('.').pop();
+                myPhoto.mv(path.join(__dirname, '../pictures/' + profilePicture));
             }
-            if(profilePicture!=""){
-                sql="UPDATE professors SET profile_picture='"+profilePicture+"' WHERE professor_id='"+results.insertId+"'; ";
+            if (profilePicture != "") {
+                sql = "UPDATE professors SET profile_picture='" + profilePicture + "' WHERE professor_id='" + results.insertId + "'; ";
                 con.query(sql, (error, subjects, fields) => {
                     if (error) throw error;
                 });
@@ -266,10 +270,10 @@ app.post("/create_prof", isAuth, function(req, res){
     });
 });
 
-app.post("/deleteEntry", isAuth, function(req, res){
-    var sql =   "DELETE "
-        sql +=  "FROM entry "
-        sql +=  "WHERE entry_id=" + req.body.entryID;
+app.post("/deleteEntry", isAuth, function(req, res) {
+    var sql = "DELETE "
+    sql += "FROM entry "
+    sql += "WHERE entry_id=" + req.body.entryID;
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
         else
@@ -279,30 +283,30 @@ app.post("/deleteEntry", isAuth, function(req, res){
     });
 });
 
-app.post("/fetch", isAuth, function(req, res){
-    var sql =   "SELECT   u.username";
-        sql +=  "        , CONCAT(p.firstname,' ', p.lastname) as full_name";
-        sql +=  "        , p.professor_id";
-        sql +=  "        , p.profile_picture";
-        sql +=  "        , s.school";
-        sql +=  "        , d.department";
-        sql +=  "        , e.* ";
-        sql +=  "        , IFNULL(v.vote, 0) as vote";
-        sql +=  "        , IFNULL(uv.vote, 0) as user_vote ";
-        sql +=  "FROM   entry e "
-        sql +=  "       LEFT JOIN user u on e.user_id=u.user_id ";
-        sql +=  "       LEFT JOIN professors p on p.professor_id=e.professor_id ";
-        sql +=  "       LEFT JOIN school s on s.school_id=p.school_id ";
-        sql +=  "       LEFT JOIN department d on d.department_id=p.department_id ";
-        sql +=  "       LEFT JOIN (SELECT 	entry_id";
-        sql +=  "                        , SUM(vote) as vote ";
-        sql +=  "                       FROM vote ";
-        sql +=  "                GROUP BY entry_id) v on v.entry_id=e.entry_id";
-        sql +=  "       LEFT JOIN ( SELECT entry_id";
-        sql +=  "				        , vote";
-        sql +=  "                 FROM vote";
-        sql +=  "                 WHERE user_id=" + globaluser.user_id + ") uv on uv.entry_id=e.entry_id ";
-        sql +=  "ORDER BY e.entry_id desc";
+app.post("/fetch", isAuth, function(req, res) {
+    var sql = "SELECT   u.username";
+    sql += "        , CONCAT(p.firstname,' ', p.lastname) as full_name";
+    sql += "        , p.professor_id";
+    sql += "        , p.profile_picture";
+    sql += "        , s.school";
+    sql += "        , d.department";
+    sql += "        , e.* ";
+    sql += "        , IFNULL(v.vote, 0) as vote";
+    sql += "        , IFNULL(uv.vote, 0) as user_vote ";
+    sql += "FROM   entry e "
+    sql += "       LEFT JOIN user u on e.user_id=u.user_id ";
+    sql += "       LEFT JOIN professors p on p.professor_id=e.professor_id ";
+    sql += "       LEFT JOIN school s on s.school_id=p.school_id ";
+    sql += "       LEFT JOIN department d on d.department_id=p.department_id ";
+    sql += "       LEFT JOIN (SELECT 	entry_id";
+    sql += "                        , SUM(vote) as vote ";
+    sql += "                       FROM vote ";
+    sql += "                GROUP BY entry_id) v on v.entry_id=e.entry_id";
+    sql += "       LEFT JOIN ( SELECT entry_id";
+    sql += "				        , vote";
+    sql += "                 FROM vote";
+    sql += "                 WHERE user_id=" + req.session.user_id + ") uv on uv.entry_id=e.entry_id ";
+    sql += "ORDER BY e.entry_id desc";
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
         else {
@@ -313,7 +317,7 @@ app.post("/fetch", isAuth, function(req, res){
     });
 });
 
-app.post("/fetch_filter", isAuth, function(req, res){
+app.post("/fetch_filter", isAuth, function(req, res) {
     var sql = "SELECT school_id AS id, school AS val FROM school";
     con.query(sql, (error, school, fields) => {
         if (error) throw error;
@@ -339,7 +343,7 @@ app.post("/fetch_filter", isAuth, function(req, res){
     });
 });
 
-app.post("/fetch_profs", isAuth, function(req, res){
+app.post("/fetch_profs", isAuth, function(req, res) {
     var sql = "SELECT * FROM professors p RIGHT JOIN ";
     var sqls = "(SELECT DISTINCT(professor_id) FROM subject_professor_link WHERE 1=1"
     for (var i = 1; i <= req.body.subjects.length && req.body.subjects.length != 1; i++) {
@@ -381,17 +385,17 @@ app.post("/fetch_profs", isAuth, function(req, res){
     });
 });
 
-app.post("/insert_entry", isAuth, function(req, res){
+app.post("/insert_entry", isAuth, function(req, res) {
     let today = new Date().toISOString().slice(0, 10)
-    var sql =   "INSERT INTO Entry(";
-        sql +=  "professor_id";
-        sql +=  ", user_id";
-        sql +=  ", entry_date";
-        sql +=  ", content) VALUES (";
-        sql +=  "  '" + req.query.profid + "'";
-        sql +=  ", '" + req.query.userid + "'";
-        sql +=  ", '" + today + "'";
-        sql +=  ", '" + req.body.entry + "')";
+    var sql = "INSERT INTO Entry(";
+    sql += "professor_id";
+    sql += ", user_id";
+    sql += ", entry_date";
+    sql += ", content) VALUES (";
+    sql += "  '" + req.query.profid + "'";
+    sql += ", '" + req.query.userid + "'";
+    sql += ", '" + today + "'";
+    sql += ", '" + req.body.entry + "')";
 
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
@@ -403,54 +407,54 @@ app.post("/insert_entry", isAuth, function(req, res){
     });
 });
 
-app.post("/login", checkAuth, function(req, res){
+app.post("/login", checkAuth, function(req, res) {
 
-    var sql =   "SELECT * ";
-         sql +=  "FROM   user ";
-         sql +=  "WHERE  username='" + req.body.username+"'";
+    var sql = "SELECT * ";
+    sql += "FROM   user ";
+    sql += "WHERE  username='" + req.body.username + "'";
 
-     con.query(sql, (error, results, fields) => {
-         if (error) throw error;
-         else if (results.length == 0) {
-             var message = encodeURIComponent(2);
-             res.redirect("/?error=" + message);
-         } else {
-             if(bcrypt.compareSync(req.body.password, results[0].password)){
-                 globaluser = {
-                     user_id: results[0].user_id,
-                     picture: results[0].profile_picture
-                 }
-                 req.session.username = req.body.username;
-                 console.log(req.session);
-                 console.log("Login Successful!");
-                 console.log("Welcome " + req.body.username + "!");
-                 res.redirect("/entry");
-             }else{
-                 var message = encodeURIComponent(1);
-                 res.redirect("/?error=" + message);
-             }
-            
-         }
-     });
+    var getUser = req.body.username;
+
+    con.query(sql, (error, results, fields) => {
+        if (error) throw error;
+        else if (results.length == 0) {
+            var message = encodeURIComponent(2);
+            res.redirect("/?error=" + message);
+        } else {
+            if (bcrypt.compareSync(req.body.password, results[0].password)) {
+
+                req.session.username = getUser;
+                req.session.picture = results[0].profile_picture;
+                req.session.user_id = results[0].user_id;
+
+                console.log(req.session);
+                console.log("Login Successful!");
+                res.redirect("/entry");
+            } else {
+                var message = encodeURIComponent(1);
+                res.redirect("/?error=" + message);
+            }
+
+        }
+    });
 });
-
-app.post("/prof_header", isAuth, function(req, res){
+app.post("/prof_header", isAuth, function(req, res) {
     var sql = "SELECT  CONCAT(firstname, ' ', lastname) as full_name ";
-        sql += "        ,school ";
-        sql += "        ,department ";
-        sql += "        ,p.* ";
-        sql += "FROM professors p ";
-        sql += "     LEFT JOIN school s ON s.school_id = p.school_id ";
-        sql += "     LEFT JOIN department d ON d.department_id = p.department_id ";
-        sql += "WHERE p.professor_id=" + req.query.profid;
+    sql += "        ,school ";
+    sql += "        ,department ";
+    sql += "        ,p.* ";
+    sql += "FROM professors p ";
+    sql += "     LEFT JOIN school s ON s.school_id = p.school_id ";
+    sql += "     LEFT JOIN department d ON d.department_id = p.department_id ";
+    sql += "WHERE p.professor_id=" + req.query.profid;
 
     con.query(sql, (error, profinfo, fields) => {
         if (error) throw error;
         else {
-            sql =   "SELECT  * ";
-            sql +=  "FROM    subject_professor_link spl ";
-            sql +=  "        LEFT JOIN subjects s ON s.subjects_id=spl.subject_id ";
-            sql +=  "WHERE   professor_id=" + req.query.profid;
+            sql = "SELECT  * ";
+            sql += "FROM    subject_professor_link spl ";
+            sql += "        LEFT JOIN subjects s ON s.subjects_id=spl.subject_id ";
+            sql += "WHERE   professor_id=" + req.query.profid;
 
             con.query(sql, (error, subjects, fields) => {
                 if (error) throw error;
@@ -466,24 +470,24 @@ app.post("/prof_header", isAuth, function(req, res){
     });
 });
 
-app.post("/prof_fetch_entry", isAuth, function(req, res){
-    var sql =   "SELECT e.* ";
-        sql +=  "       ,username ";
-        sql +=  "       ,u.profile_picture ";
-        sql +=  "       ,Ifnull(v.vote, 0)  AS vote ";
-        sql +=  "       ,Ifnull(uv.vote, 0) AS user_vote ";
-        sql +=  "FROM   entry e ";
-        sql +=  "       LEFT JOIN user u ON e.user_id = u.user_id ";
-        sql +=  "       LEFT JOIN (SELECT entry_id, ";
-        sql +=  "                         Sum(vote) AS vote ";
-        sql +=  "                  FROM   vote ";
-        sql +=  "                  GROUP  BY entry_id) v ON v.entry_id = e.entry_id ";
-        sql +=  "       LEFT JOIN (SELECT entry_id, ";
-        sql +=  "                         vote ";
-        sql +=  "                  FROM   vote ";
-        sql +=  "                  WHERE  user_id = " + req.query.user + ") uv ON uv.entry_id = e.entry_id ";
-        sql +=  "WHERE  professor_id = " + req.query.profid+" ";
-        sql +=  "ORDER BY e.entry_id desc";
+app.post("/prof_fetch_entry", isAuth, function(req, res) {
+    var sql = "SELECT e.* ";
+    sql += "       ,username ";
+    sql += "       ,u.profile_picture ";
+    sql += "       ,Ifnull(v.vote, 0)  AS vote ";
+    sql += "       ,Ifnull(uv.vote, 0) AS user_vote ";
+    sql += "FROM   entry e ";
+    sql += "       LEFT JOIN user u ON e.user_id = u.user_id ";
+    sql += "       LEFT JOIN (SELECT entry_id, ";
+    sql += "                         Sum(vote) AS vote ";
+    sql += "                  FROM   vote ";
+    sql += "                  GROUP  BY entry_id) v ON v.entry_id = e.entry_id ";
+    sql += "       LEFT JOIN (SELECT entry_id, ";
+    sql += "                         vote ";
+    sql += "                  FROM   vote ";
+    sql += "                  WHERE  user_id = " + req.query.user + ") uv ON uv.entry_id = e.entry_id ";
+    sql += "WHERE  professor_id = " + req.query.profid + " ";
+    sql += "ORDER BY e.entry_id desc";
     con.query(sql, (error, entry, fields) => {
         if (error) throw error;
         else {
@@ -494,11 +498,11 @@ app.post("/prof_fetch_entry", isAuth, function(req, res){
         }
     });
 });
-app.post("/profile_header", isAuth, function(req, res){
-    var sql =   "SELECT * ";
-        sql +=  "FROM    user u ";
-        sql +=  "        LEFT JOIN school s ON s.school_id=u.school_id ";
-        sql +=  "WHERE   user_id = " + req.body.id;
+app.post("/profile_header", isAuth, function(req, res) {
+    var sql = "SELECT * ";
+    sql += "FROM    user u ";
+    sql += "        LEFT JOIN school s ON s.school_id=u.school_id ";
+    sql += "WHERE   user_id = " + req.body.id;
 
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
@@ -511,24 +515,24 @@ app.post("/profile_header", isAuth, function(req, res){
     });
 });
 
-app.post("/profile_fetch_entry", isAuth, function(req, res){
-    var sql =   "SELECT e.* ";
-        sql +=  "       ,CONCAT(p.firstname, ' ', p.lastname) as username";
-        sql +=  "       ,p.profile_picture ";
-        sql +=  "       ,Ifnull(v.vote, 0)  AS vote ";
-        sql +=  "       ,Ifnull(uv.vote, 0) AS user_vote ";
-        sql +=  "FROM   entry e ";
-        sql +=  "       LEFT JOIN professors p ON e.professor_id = p.professor_id ";
-        sql +=  "       LEFT JOIN (SELECT entry_id, ";
-        sql +=  "                         Sum(vote) AS vote ";
-        sql +=  "                  FROM   vote ";
-        sql +=  "                  GROUP  BY entry_id) v ON v.entry_id = e.entry_id ";
-        sql +=  "       LEFT JOIN (SELECT entry_id, ";
-        sql +=  "                         vote ";
-        sql +=  "                  FROM   vote ";
-        sql +=  "                  WHERE  user_id = " + req.query.user + ") uv ON uv.entry_id = e.entry_id ";
-        sql +=  "WHERE  e.user_id = " + req.query.user + " ";
-        sql +=  "ORDER BY e.entry_id desc";
+app.post("/profile_fetch_entry", isAuth, function(req, res) {
+    var sql = "SELECT e.* ";
+    sql += "       ,CONCAT(p.firstname, ' ', p.lastname) as username";
+    sql += "       ,p.profile_picture ";
+    sql += "       ,Ifnull(v.vote, 0)  AS vote ";
+    sql += "       ,Ifnull(uv.vote, 0) AS user_vote ";
+    sql += "FROM   entry e ";
+    sql += "       LEFT JOIN professors p ON e.professor_id = p.professor_id ";
+    sql += "       LEFT JOIN (SELECT entry_id, ";
+    sql += "                         Sum(vote) AS vote ";
+    sql += "                  FROM   vote ";
+    sql += "                  GROUP  BY entry_id) v ON v.entry_id = e.entry_id ";
+    sql += "       LEFT JOIN (SELECT entry_id, ";
+    sql += "                         vote ";
+    sql += "                  FROM   vote ";
+    sql += "                  WHERE  user_id = " + req.query.user + ") uv ON uv.entry_id = e.entry_id ";
+    sql += "WHERE  e.user_id = " + req.query.user + " ";
+    sql += "ORDER BY e.entry_id desc";
 
     con.query(sql, (error, entry, fields) => {
         if (error) throw error;
@@ -540,11 +544,11 @@ app.post("/profile_fetch_entry", isAuth, function(req, res){
     });
 });
 
-app.post("/update", isAuth, function(req, res){
+app.post("/update", isAuth, function(req, res) {
     if (req.query.load == 0) {
-        var sql =   "UPDATE entry "
-            sql +=  "SET content='" + req.body.editedPost + "' ";
-            sql +=  "WHERE entry_id  = " + req.query.entryid;
+        var sql = "UPDATE entry "
+        sql += "SET content='" + req.body.editedPost + "' ";
+        sql += "WHERE entry_id  = " + req.query.entryid;
 
         con.query(sql, (error, results, fields) => {
             if (error) throw error;
@@ -554,42 +558,42 @@ app.post("/update", isAuth, function(req, res){
     }
 });
 
-app.post("/update_profile", isAuth, function(req, res){
+app.post("/update_profile", isAuth, function(req, res) {
     var profilePicture = "";
-    if(req.files!=null){
+    if (req.files != null) {
         const { myPhoto } = req.files;
-        profilePicture = 'u'+globaluser.user_id+'.' + myPhoto.name.split('.').pop();
-        myPhoto.mv(path.join(__dirname, '../pictures/'+profilePicture));
-        globaluser.picture=profilePicture;
+        profilePicture = 'u' + req.session.user_id + '.' + myPhoto.name.split('.').pop();
+        myPhoto.mv(path.join(__dirname, '../pictures/' + profilePicture));
+        req.session.picture = profilePicture;
     }
-    
-    var sql =   "UPDATE user SET ";
-        sql +=  "username='"+req.body.username+"'";
-        sql +=  ", school_id='"+req.body.school+"'";
-        sql +=  ", year_level='"+req.body.year_level+"'";
-        sql +=  ", course='"+req.body.course+"'";
-        sql +=  ", biography='"+req.body.bio+"'";
-        if(req.body.password!="")
-            sql +=  ", password='"+bcrypt.hashSync(req.body.password, 10)+"'";
-        if(profilePicture!="")
-            sql += ", profile_picture='"+ profilePicture +"'";
-        sql +=  "WHERE user_id = '"+globaluser.user_id+"'";
 
-        con.query(sql, (error, results, fields) => {
-            if (error) {
-                res.redirect("/edit_profile?error=1");
-            } else
-                res.redirect("/profile");
-        });
+    var sql = "UPDATE user SET ";
+    sql += "username='" + req.body.username + "'";
+    sql += ", school_id='" + req.body.school + "'";
+    sql += ", year_level='" + req.body.year_level + "'";
+    sql += ", course='" + req.body.course + "'";
+    sql += ", biography='" + req.body.bio + "'";
+    if (req.body.password != "")
+        sql += ", password='" + bcrypt.hashSync(req.body.password, 10) + "'";
+    if (profilePicture != "")
+        sql += ", profile_picture='" + profilePicture + "'";
+    sql += "WHERE user_id = '" + req.session.user_id + "'";
+
+    con.query(sql, (error, results, fields) => {
+        if (error) {
+            res.redirect("/edit_profile?error=1");
+        } else
+            res.redirect("/profile");
+    });
 });
 
-app.post("/vote", isAuth, function(req, res){
-    var sql =   "INSERT INTO vote VALUES(";
-        sql +=   req.body.userID
-        sql +=  ", " + req.body.entryID
-        sql +=  ", " + req.body.vote + ") ";
-        sql +=  "ON DUPLICATE KEY ";
-        sql +=  "UPDATE vote=" + req.body.vote;
+app.post("/vote", isAuth, function(req, res) {
+    var sql = "INSERT INTO vote VALUES(";
+    sql += req.body.userID
+    sql += ", " + req.body.entryID
+    sql += ", " + req.body.vote + ") ";
+    sql += "ON DUPLICATE KEY ";
+    sql += "UPDATE vote=" + req.body.vote;
 
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
@@ -600,16 +604,16 @@ app.post("/vote", isAuth, function(req, res){
     });
 });
 
-app.get("/Logout", isAuth, function(req, res){
-    req.session.destroy(function(err){
-        if(!err){
+app.get("/Logout", isAuth, function(req, res) {
+    req.session.destroy(function(err) {
+        if (!err) {
             console.log("Logged Out!");
-            res.redirect('/'); 
+            res.redirect('/');
         }
     });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=>{
-    console.log("Server is running at port: "+ PORT)
+app.listen(PORT, () => {
+    console.log("Server is running at port: " + PORT)
 })
