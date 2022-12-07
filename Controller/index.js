@@ -88,7 +88,6 @@ function checkAuth(req, res, next){
 }
 
 /* End of Session */
-
 app.get("/", checkAuth, function(req, res){
     var message = req.query.error;
     console.log(res.session);
@@ -193,7 +192,8 @@ app.get("/signup", checkAuth, function(req, res){
     var sql = "SELECT * FROM school";
     con.query(sql, (error, results, fields) => {
         if (error) throw error;
-        else res.render("signup.ejs", {
+        else 
+        res.render("signup.ejs", {
             results: results,
             msg: req.query.error
         });
@@ -574,7 +574,8 @@ app.post("/update_profile", isAuth, function(req, res){
         sql +=  ", year_level='"+req.body.year_level+"'";
         sql +=  ", course='"+req.body.course+"'";
         sql +=  ", biography='"+req.body.bio+"'";
-        sql +=  ", password='"+req.body.password+"'";
+        if(req.body.password!="")
+            sql +=  ", password='"+bcrypt.hashSync(req.body.password, 10)+"'";
         if(profilePicture!="")
             sql += ", profile_picture='"+ profilePicture +"'";
         sql +=  "WHERE user_id = '"+globaluser.user_id+"'";
@@ -612,8 +613,3 @@ app.get("/Logout", isAuth, function(req, res){
         }
     });
 });
-
-
-// app.listen('3000', () => {
-//     console.log("Server start at port 3000");
-// });
