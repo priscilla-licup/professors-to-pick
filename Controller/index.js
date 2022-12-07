@@ -9,7 +9,7 @@ const cookieParser = require('cookie-parser');
 const session = require("express-session");
 
 const fileUpload = require('express-fileupload');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 const app = express();
 app.set('trust proxy', 1);
