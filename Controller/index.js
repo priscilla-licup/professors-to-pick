@@ -33,11 +33,9 @@ app.use(
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
+var con = mysql.createConnection("mysql://root:dXgE1e8emfxKsk5gcFM0@containers-us-west-157.railway.app:5459/railway");
 
 const MySQLStore = require("express-mysql-session")(session);
-
-var con = mysql.createConnection('mysql://root:dXgE1e8emfxKsk5gcFM0@containers-us-west-157.railway.app:5459/railway');
-
 
 var sessionStore = new MySQLStore({
      createDatabaseTable: true,
@@ -62,10 +60,6 @@ app.use(session({
 }))
 
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=>{
-    console.log("Server is running at port: "+ PORT)
-})
 
 /* Check if logged in */
 function isAuth(req, res, next){
@@ -613,3 +607,8 @@ app.get("/Logout", isAuth, function(req, res){
         }
     });
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, ()=>{
+    console.log("Server is running at port: "+ PORT)
+})
