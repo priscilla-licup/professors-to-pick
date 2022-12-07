@@ -18,9 +18,9 @@ CREATE SCHEMA IF NOT EXISTS `ptp` DEFAULT CHARACTER SET utf8 ;
 USE `ptp` ;
 
 -- -----------------------------------------------------
--- Table `ptp`.`Subjects`
+-- Table `Subjects`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptp`.`Subjects` (
+CREATE TABLE IF NOT EXISTS `subjects` (
   `subjects_id` INT NOT NULL AUTO_INCREMENT,
   `subjects` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`subjects_id`))
@@ -28,9 +28,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `ptp`.`Department`
+-- Table `Department`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptp`.`Department` (
+CREATE TABLE IF NOT EXISTS `department` (
   `department_id` INT NOT NULL AUTO_INCREMENT,
   `department` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`department_id`))
@@ -38,9 +38,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `ptp`.`School`
+-- Table `School`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptp`.`School` (
+CREATE TABLE IF NOT EXISTS `school` (
   `school_id` INT NOT NULL AUTO_INCREMENT,
   `school` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`school_id`))
@@ -48,9 +48,9 @@ ENGINE = InnoDB;
 
 -- KJALSDFJLKASF
 -- -----------------------------------------------------
--- Table `ptp`.`User`
+-- Table `User`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptp`.`User` (
+CREATE TABLE IF NOT EXISTS `user` (
   `user_id` INT NOT NULL AUTO_INCREMENT,
   `school_id` INT NOT NULL,
   `username` VARCHAR(45) NOT NULL,
@@ -64,16 +64,16 @@ CREATE TABLE IF NOT EXISTS `ptp`.`User` (
   UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE,
   CONSTRAINT `fk_user_school_id`
     FOREIGN KEY (`school_id`)
-    REFERENCES `ptp`.`School` (`school_id`)
+    REFERENCES `school` (`school_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 -- KJALSDFJLKASF
 -- -----------------------------------------------------
--- Table `ptp`.`Professors`
+-- Table `Professors`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptp`.`Professors` (
+CREATE TABLE IF NOT EXISTS `professors` (
   `professor_id` INT NOT NULL AUTO_INCREMENT,
   `school_id` INT NOT NULL,
   `department_id` INT NOT NULL,
@@ -85,41 +85,41 @@ CREATE TABLE IF NOT EXISTS `ptp`.`Professors` (
   INDEX `fk_school_id_idx` (`school_id` ASC) VISIBLE,
   CONSTRAINT `fk_prof_school_id`
     FOREIGN KEY (`school_id`)
-    REFERENCES `ptp`.`School` (`school_id`)
+    REFERENCES `school` (`school_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `fk_prof_department_id`
     FOREIGN KEY (`department_id`)
-    REFERENCES `ptp`.`Department` (`department_id`)
+    REFERENCES `department` (`department_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `ptp`.`Subject_Professor_Link`
+-- Table `Subject_Professor_Link`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptp`.`Subject_Professor_Link` (
+CREATE TABLE IF NOT EXISTS `subject_professor_link` (
   `professor_id` INT NOT NULL,
   `subject_id` INT NOT NULL,
   INDEX `fk_subject_id_idx` (`subject_id` ASC) VISIBLE,
   CONSTRAINT `fk_subj_prof_link_subject_id`
     FOREIGN KEY (`subject_id`)
-    REFERENCES `ptp`.`Subjects` (`subjects_id`)
+    REFERENCES `subjects` (`subjects_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `fk_subj_prof_link_professor_id`
     FOREIGN KEY (`professor_id`)
-    REFERENCES `ptp`.`Professors` (`professor_id`)
+    REFERENCES `professors` (`professor_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `ptp`.`Entry`
+-- Table `Entry`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptp`.`Entry` (
+CREATE TABLE IF NOT EXISTS `entry` (
   `entry_id` INT NOT NULL AUTO_INCREMENT,
   `professor_id` INT NOT NULL,
   `user_id` INT NOT NULL,
@@ -130,21 +130,21 @@ CREATE TABLE IF NOT EXISTS `ptp`.`Entry` (
   INDEX `fk_user_id_idx` (`user_id` ASC) VISIBLE,
   CONSTRAINT `fk_entry_professor_id`
     FOREIGN KEY (`professor_id`)
-    REFERENCES `ptp`.`Professors` (`professor_id`)
+    REFERENCES `professors` (`professor_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `fk_entry_user_id`
     FOREIGN KEY (`user_id`)
-    REFERENCES `ptp`.`User` (`user_id`)
+    REFERENCES `user` (`user_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `ptp`.`Vote`
+-- Table `Vote`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptp`.`Vote` (
+CREATE TABLE IF NOT EXISTS `vote` (
   `user_id` INT NOT NULL,
   `entry_id` INT NOT NULL,
   `vote` SMALLINT NOT NULL,
@@ -153,12 +153,12 @@ CREATE TABLE IF NOT EXISTS `ptp`.`Vote` (
   INDEX `fk_entry_id_idx` (`entry_id` ASC) VISIBLE,
   CONSTRAINT `fk_vote_user_id`
     FOREIGN KEY (`user_id`)
-    REFERENCES `ptp`.`User` (`user_id`)
+    REFERENCES `user` (`user_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `fk_vote_entry_id`
     FOREIGN KEY (`entry_id`)
-    REFERENCES `ptp`.`Entry` (`entry_id`)
+    REFERENCES `entry` (`entry_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
@@ -171,11 +171,11 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
 
 
-INSERT INTO School (school)
+INSERT INTO school (school)
 VALUES ('De La Salle University'), ('Ateneo De Manila'), ('University of The Philippines'), ('University de Santo Tomas'), ('Mapúa University');
 
-INSERT INTO Department(department)
+INSERT INTO department(department)
 VALUES ('IT'), ('Business'), ('Law'), ('Biology'), ('Engineering');
 
-INSERT INTO Subjects (subjects)
+INSERT INTO subjects (subjects)
 VALUES ('CCAPDEV'), ('ITNET04'), ('GEMATMW'), ('ACYMAG2'), ('INPLANT');

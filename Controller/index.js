@@ -26,14 +26,15 @@ global.globaluser={};
 app.use(express.json());
 app.use(
     cors({ 
-    origin: ["http://localhost:3000"],
+    origin: ["https://professors-to-pick-production.up.railway.app/"],
     methods: ["GET", "POST"],
     credentials: true
 }));
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
-var con = mysql.createConnection("mysql://root:dXgE1e8emfxKsk5gcFM0@containers-us-west-157.railway.app:5459/railway");
+
+var con = mysql.createConnection("mysql://root:VUgmCk9rga7Ym5wuViZL@containers-us-west-157.railway.app:7482/railway");
 
 const MySQLStore = require("express-mysql-session")(session);
 
@@ -192,7 +193,6 @@ app.get("/signup", checkAuth, function(req, res){
             msg: req.query.error
         });
     });
-
 });
 
 app.post("/create_account", checkAuth, function(req, res){
