@@ -36,13 +36,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 const MySQLStore = require("express-mysql-session")(session);
 
-var con = mysql.createConnection({
-    user: "root",
-    host: "localhost",
-    password: "password",
-    database: "ptp"
-});
- var sessionStore = new MySQLStore({
+var con = mysql.createConnection('mysql://root:kv83jKtBiNu1wkHwLBpt@containers-us-west-157.railway.app:7534/railway');
+
+var sessionStore = new MySQLStore({
      createDatabaseTable: true,
      schema:{
          tableName: 'tblSession',
