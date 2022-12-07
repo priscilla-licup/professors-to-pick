@@ -36,10 +36,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 const MySQLStore = require("express-mysql-session")(session);
 
-// var con = mysql.createConnection('mysql://root:kv83jKtBiNu1wkHwLBpt@containers-us-west-157.railway.app:7534/railway');
+var con = mysql.createConnection('mysql://root:kv83jKtBiNu1wkHwLBpt@containers-us-west-157.railway.app:7534/railway');
 
-// Connection Pool
-var con = mysql.createPool('mysql://root:kv83jKtBiNu1wkHwLBpt@containers-us-west-157.railway.app:7534/railway');
 
 var sessionStore = new MySQLStore({
      createDatabaseTable: true,
