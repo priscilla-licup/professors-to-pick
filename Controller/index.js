@@ -26,7 +26,7 @@ global.globaluser={};
 app.use(express.json());
 app.use(
     cors({ 
-    origin: ["https://professors-to-pick-production.up.railway.app/"],
+    origin: ["https://professors-to-pick-production.up.railway.app"],
     methods: ["GET", "POST"],
     credentials: true
 }));
@@ -84,6 +84,7 @@ function checkAuth(req, res, next){
 
 /* End of Session */
 app.get("/", checkAuth, function(req, res){
+    console.log(con);
     var message = req.query.error;
     console.log(res.session);
     res.render("index.ejs", {
